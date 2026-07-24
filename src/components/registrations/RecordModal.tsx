@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { X, Users, UserRound, Utensils, CreditCard, Coffee, Info } from "lucide-react";
 import type { AnyRecord } from "./utils";
-import type { TabKey, Usuario, Pessoa, Mesa, Pagamento, Prato, PessoaTipo } from "./types";
+import type { TabKey, Usuario, PessoaTipo } from "./types";
 import { atalhos, perfis, ufs, uid } from "./types";
 
 type Section = { title: string; hint?: string };
