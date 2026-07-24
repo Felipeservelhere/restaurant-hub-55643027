@@ -248,13 +248,13 @@ export function RegistrationsPage() {
               <p className="mt-1 text-xs text-ink-muted">Ajuste a busca ou cadastre um novo {cfg.singular}.</p>
             </div>
           ) : (
-            pageItems.map((r) => (
+            pageItems.map((r: any) => (
               <RowCard
-                key={(r as any).id}
+                key={r.id}
                 tab={tab}
                 record={r}
-                onEdit={() => openEdit(r)}
-                onDelete={() => remove((r as any).id)}
+                onEdit={() => openEdit(r as AnyRecord)}
+                onDelete={() => remove(r.id)}
               />
             ))
           )}
