@@ -193,11 +193,11 @@ function getRecordTitle(tab: TabKey, d: any) {
 
 function defaultFor(tab: TabKey): any {
   switch (tab) {
-    case "usuarios": return { nome: "", login: "", perfil: "Operador", situacao: "Ativo", senha: "" } as Usuario;
-    case "pessoas": return { documento: "", nome: "", tipos: [], contribuinte: "9", telefone: "", email: "", cep: "", uf: "SP", logradouro: "", numero: "", bairro: "", cidade: "", situacao: "Ativo" } as Pessoa;
-    case "mesas": return { identificacao: "", tipo: "Mesa", local: "" } as Mesa;
-    case "pagamentos": return { descricao: "", taxa: 0, prazo: 0, atalho: "—", situacao: "Ativo" } as Pagamento;
-    case "pratos": return { nome: "", tipo: "Prato", valor: 0, situacao: "Ativo" } as Prato;
+    case "usuarios": return { id: "", nome: "", login: "", perfil: "Operador", situacao: "Ativo", senha: "" };
+    case "pessoas": return { id: "", documento: "", nome: "", tipos: [], contribuinte: "9", telefone: "", email: "", cep: "", uf: "SP", logradouro: "", numero: "", bairro: "", cidade: "", situacao: "Ativo" };
+    case "mesas": return { id: "", identificacao: "", tipo: "Mesa", local: "" };
+    case "pagamentos": return { id: "", descricao: "", taxa: 0, prazo: 0, atalho: "—", situacao: "Ativo" };
+    case "pratos": return { id: "", nome: "", tipo: "Prato", valor: 0, situacao: "Ativo" };
   }
 }
 
