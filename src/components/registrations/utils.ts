@@ -11,12 +11,12 @@ export const formatBRL = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export const avatarPalette = [
-  "bg-orange-100 text-orange-700",
-  "bg-sky-100 text-sky-700",
-  "bg-emerald-100 text-emerald-700",
-  "bg-violet-100 text-violet-700",
-  "bg-rose-100 text-rose-700",
-  "bg-amber-100 text-amber-700",
+  "bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300",
+  "bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300",
+  "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
+  "bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-300",
+  "bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300",
+  "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
 ];
 
 export const colorFor = (seed: string) => {
@@ -59,6 +59,7 @@ export const sortFieldsByTab: Record<TabKey, { key: string; label: string }[]> =
     { key: "situacao", label: "Situação" },
   ],
   pessoas: [
+    { key: "ordem", label: "Ordem manual" },
     { key: "nome", label: "Nome" },
     { key: "documento", label: "CPF/CNPJ" },
     { key: "cidade", label: "Cidade" },

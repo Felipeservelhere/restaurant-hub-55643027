@@ -6,9 +6,17 @@ export interface Usuario {
   id: string;
   nome: string;
   login: string;
-  perfil: "Administrador" | "Gerente" | "Operador" | "Caixa";
+  perfil: "Administrador" | "Garçom/Atendente" | "Caixa" | "Entregador";
   situacao: Situacao;
   senha?: string;
+  /** Só relevantes quando perfil = Caixa — liberam a ação sem senha de admin. */
+  perm_apagar_item?: boolean;
+  perm_cancelar_pedido?: boolean;
+  perm_conceder_desconto?: boolean;
+  perm_acesso_cardapio?: boolean;
+  perm_ver_valores?: boolean;
+  /** Só relevante quando perfil = Garçom/Atendente — vê entregas e retiradas (todas as origens). */
+  perm_ver_entregas?: boolean;
 }
 
 export type PessoaTipo = "Cliente" | "Fornecedor" | "Funcionario";
@@ -29,6 +37,9 @@ export interface Pessoa {
   complemento?: string;
   bairro: string;
   cidade: string;
+  /** cidade/UF vieram do fallback da empresa (exibição) */
+  cidadeUfEmpresa?: boolean;
+  ordem?: number;
   situacao: Situacao;
   observacoes?: string;
 }
@@ -38,6 +49,8 @@ export interface Mesa {
   identificacao: string;
   tipo: "Mesa" | "Comanda";
   local: string;
+  situacao?: Situacao;
+  numero?: string;
 }
 
 export interface Pagamento {
@@ -62,8 +75,8 @@ export const uid = () => Math.random().toString(36).slice(2, 10);
 
 export const seedUsuarios: Usuario[] = [
   { id: uid(), nome: "Ana Beatriz Souza", login: "ana.souza", perfil: "Administrador", situacao: "Ativo", senha: "123456" },
-  { id: uid(), nome: "Carlos Henrique", login: "carlos.h", perfil: "Gerente", situacao: "Ativo", senha: "123456" },
-  { id: uid(), nome: "Marina Duarte", login: "marina.d", perfil: "Operador", situacao: "Ativo", senha: "123456" },
+  { id: uid(), nome: "Carlos Henrique", login: "carlos.h", perfil: "Garçom/Atendente", situacao: "Ativo", senha: "123456" },
+  { id: uid(), nome: "Marina Duarte", login: "marina.d", perfil: "Garçom/Atendente", situacao: "Ativo", senha: "123456" },
   { id: uid(), nome: "Ricardo Alves", login: "ricardo.a", perfil: "Caixa", situacao: "Inativo", senha: "123456" },
 ];
 
@@ -119,7 +132,7 @@ export const seedPratos: Prato[] = [
   { id: uid(), nome: "Suco de laranja", tipo: "Copo", valor: 9.5, situacao: "Inativo" },
 ];
 
-export const perfis: Usuario["perfil"][] = ["Administrador", "Gerente", "Operador", "Caixa"];
+export const perfis: Usuario["perfil"][] = ["Administrador", "Garçom/Atendente", "Caixa", "Entregador"];
 export const ufs = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
 export const atalhos = ["—","F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12"];
 
@@ -132,8 +145,8 @@ export const tabConfig: Record<TabKey, {
   accent: string; // tailwind classes for icon chip
 }> = {
   usuarios:   { singular: "usuário",   plural: "Usuários",          ctaLabel: "Novo usuário",     title: "Usuários",           description: "Gerencie logins, perfis e permissões da equipe.",   accent: "from-brand to-orange-500" },
-  pessoas:    { singular: "pessoa",    plural: "Pessoas",           ctaLabel: "Nova pessoa",      title: "Pessoas",            description: "Clientes, fornecedores e funcionários em um só lugar.", accent: "from-brand to-orange-500" },
-  mesas:      { singular: "mesa",      plural: "Mesas e comandas",  ctaLabel: "Nova mesa",        title: "Mesas e comandas",   description: "Organize salão, varanda e comandas do balcão.",       accent: "from-brand to-orange-500" },
+  pessoas:    { singular: "pessoa",    plural: "Pessoas",           ctaLabel: "Nova pessoa",      title: "Pessoas",            description: "Cadastro de pessoas com consulta automática de CNPJ (SintegraBrasil).", accent: "from-brand to-orange-500" },
+  mesas:      { singular: "mesa",      plural: "Mesas e comandas",  ctaLabel: "Nova mesa/comanda", title: "Mesas e comandas",   description: "Organize salão, varanda e comandas do balcão.",       accent: "from-brand to-orange-500" },
   pagamentos: { singular: "pagamento", plural: "Tipos de pagamento",ctaLabel: "Novo pagamento",   title: "Tipos de pagamento", description: "Formas aceitas, taxas e atalhos de teclado.",         accent: "from-brand to-orange-500" },
   pratos:     { singular: "item",      plural: "Pratos e copos",    ctaLabel: "Novo item",        title: "Pratos e copos",     description: "Cardápio completo com preços e observações.",         accent: "from-brand to-orange-500" },
 };
