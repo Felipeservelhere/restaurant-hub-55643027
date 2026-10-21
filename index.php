@@ -19,6 +19,10 @@ $distIndex = __DIR__ . '/dist/index.html';
 $distOk = is_file($distIndex);
 $v = $distOk ? (string) filemtime($distIndex) : (string) time();
 $src = '/CSGourmet/cadastros-aba/dist/index.html?v=' . rawurlencode($v);
+// Atalho de outras telas (ex.: "Cadastrar novo garçom" do QR): abre a aba e o formulário direto.
+$abaUrl = preg_replace('/[^a-z]/', '', (string) ($_GET['aba'] ?? ''));
+if ($abaUrl !== '') { $src .= '&aba=' . rawurlencode($abaUrl); }
+if (($_GET['novo'] ?? '') === '1') { $src .= '&novo=1'; }
 ?>
 <style>
   .csg-cadastros-aba-wrap {

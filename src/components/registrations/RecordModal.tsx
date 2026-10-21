@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { X, Users, UserRound, Utensils, CreditCard, Coffee, Loader2, Shield, UserRoundPen } from "lucide-react";
+import { X, Users, UserRound, Utensils, CreditCard, Coffee, Loader2, Shield, UserRoundPen, Crown, Wallet, Bike, ConciergeBell, Check } from "lucide-react";
 import type { AnyRecord } from "./utils";
 import type { Mesa, Pagamento, TabKey } from "./types";
 import { atalhos, perfis, tabConfig, ufs, uid } from "./types";
@@ -562,93 +562,111 @@ function renderFields(
   if (tab === "usuarios") {
     const isCaixa = data.perfil === "Caixa";
     const isGarcom = data.perfil === "Garçom/Atendente";
-    const permRow = (key: string, label: string) => (
-      <div key={key} className="flex items-center justify-between gap-3 rounded-xl border border-amber-200/80 bg-amber-50/60 px-3 py-2.5 sm:col-span-2">
-        <Label htmlFor={`perm-${key}`} className="cursor-pointer text-sm font-medium text-ink leading-snug">
-          {label}
-        </Label>
-        <Switch
-          id={`perm-${key}`}
-          checked={!!data[key]}
-          onCheckedChange={(v) => upd({ [key]: v })}
-          className="data-[state=checked]:bg-amber-600"
-        />
-      </div>
-    );
-    const perfilDesc: Record<string, string> = {
-      "Administrador": "Acesso total ao sistema, sem restrições.",
-      "Garçom/Atendente": "Painel de mesas, lançamento de pedidos e impressão — no PC e no celular.",
-      "Caixa": "Painel, pedidos e fechamento no caixa. Libere abaixo o que ele pode fazer sem senha de administrador.",
-      "Entregador": "Somente a tela de entregas.",
+    // Login sugerido pelo nome ("João da Silva" → "joao.silva") enquanto a pessoa não mexer nele.
+    const sugerirLogin = (nome: string) => {
+      const partes = nome
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase().replace(/[^a-z0-9 ]/g, " ").trim().split(/\s+/).filter(Boolean);
+      if (partes.length === 0) return "";
+      return partes.length === 1 ? partes[0] : `${partes[0]}.${partes[partes.length - 1]}`;
     };
+    const mudarNome = (nome: string) => {
+      const automatico = !data.id && (!data.login || data.login === sugerirLogin(data.nome || ""));
+      upd(automatico ? { nome, login: sugerirLogin(nome) } : { nome });
+    };
+    const perfisCards: { valor: string; titulo: string; desc: string; Icone: typeof Crown }[] = [
+      { valor: "Garçom/Atendente", titulo: "Garçom", desc: "Mesas e pedidos, no PC e no celular", Icone: ConciergeBell },
+      { valor: "Caixa", titulo: "Caixa", desc: "Pedidos e fechamento no caixa", Icone: Wallet },
+      { valor: "Administrador", titulo: "Administrador", desc: "Acesso total, sem restrições", Icone: Crown },
+      { valor: "Entregador", titulo: "Entregador", desc: "Só a tela de entregas", Icone: Bike },
+    ].filter((c) => (perfis as string[]).includes(c.valor));
+    const perm = (key: string, label: string) => (
+      <label
+        key={key}
+        htmlFor={`perm-${key}`}
+        className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-1.5 transition ${data[key] ? "border-brand/40 bg-brand/[0.06]" : "border-border/80 bg-surface"}`}
+      >
+        <span className="text-[13px] font-medium leading-snug text-ink">{label}</span>
+        <Switch id={`perm-${key}`} checked={!!data[key]} onCheckedChange={(v) => upd({ [key]: v })} />
+      </label>
+    );
+    const senhaDiferente = !!data.senha && !!confirmSenha && data.senha !== confirmSenha;
     return (
-      <>
-        <Block title="Identificação">
-          <Field label="Nome" required className="sm:col-span-2">
-            <Input className={inputCls} value={data.nome} onChange={(e) => upd({ nome: e.target.value })} placeholder="Nome completo" />
+      <div className="space-y-2.5">
+        {/* Perfil em cartões: escolher olhando, sem abrir lista nem ler parágrafo. */}
+        <div>
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="text-xs font-semibold text-ink-muted">O que essa pessoa faz? <span className="text-danger">*</span></span>
+            <label className="flex cursor-pointer items-center gap-2 text-xs font-semibold text-ink-muted">
+              {data.situacao === "Ativo" ? "Ativo" : "Inativo"}
+              <Switch checked={data.situacao === "Ativo"} onCheckedChange={(v) => upd({ situacao: v ? "Ativo" : "Inativo" })} />
+            </label>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {perfisCards.map(({ valor, titulo, desc, Icone }) => {
+              const ativo = data.perfil === valor;
+              return (
+                <button
+                  key={valor}
+                  type="button"
+                  aria-pressed={ativo}
+                  onClick={() => upd({ perfil: valor })}
+                  className={`relative flex cursor-pointer flex-col items-start gap-0.5 rounded-2xl border-2 px-3 py-2.5 text-left transition ${ativo ? "border-brand bg-brand/[0.07] shadow-sm shadow-brand/20" : "border-border/80 bg-surface hover:border-brand/40"}`}
+                >
+                  <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${ativo ? "bg-gradient-to-br from-brand to-orange-500 text-white" : "bg-muted text-ink-muted"}`}>
+                    <Icone className="h-[18px] w-[18px]" />
+                  </span>
+                  <span className="text-sm font-bold text-ink">{titulo}</span>
+                  <span className="text-[11px] leading-snug text-ink-muted">{desc}</span>
+                  {ativo && (
+                    <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-white">
+                      <Check className="h-3 w-3" strokeWidth={3} />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field label="Nome" required>
+            <Input autoFocus={!data.id} className={inputCls} value={data.nome} onChange={(e) => mudarNome(e.target.value)} placeholder="Ex.: João da Silva" />
           </Field>
-          <Field label="Login" required hint="Letras, números e ponto.">
-            <Input className={inputCls} value={data.login} onChange={(e) => upd({ login: e.target.value })} placeholder="ex.: joao.silva" />
+          <Field label="Login" required>
+            <Input className={inputCls} value={data.login} onChange={(e) => upd({ login: e.target.value })} placeholder="sai do nome, ex.: joao.silva" autoCapitalize="off" spellCheck={false} />
           </Field>
-          <Field label="Situação">
-            <Select value={data.situacao} onValueChange={(v) => upd({ situacao: v })}>
-              <SelectTrigger className={`cursor-pointer ${inputCls}`}><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Ativo">Ativo</SelectItem>
-                <SelectItem value="Inativo">Inativo</SelectItem>
-              </SelectContent>
-            </Select>
-          </Field>
-        </Block>
-        <Block title="Perfil de acesso">
-          <Field label="Perfil" required className="sm:col-span-2" hint={perfilDesc[data.perfil] ?? ""}>
-            <Select value={data.perfil} onValueChange={(v) => upd({ perfil: v })}>
-              <SelectTrigger className={`cursor-pointer ${inputCls}`}><SelectValue /></SelectTrigger>
-              <SelectContent>{perfis.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
-            </Select>
-          </Field>
-          {isCaixa && (
-            <div className="sm:col-span-2 rounded-xl border border-amber-300/80 bg-amber-50/40 p-3">
-              <h5 className="mb-1 flex items-center gap-2 text-xs font-bold tracking-tight text-amber-900">
-                <Shield className="h-4 w-4" /> Permissões do caixa
-              </h5>
-              <p className="mb-2 text-[11px] leading-relaxed text-amber-800/90">
-                Marque as ações em que <strong>este caixa</strong> pode agir sozinho.
-                As desmarcadas continuam pedindo senha de administrador.
-              </p>
-              <div className="grid grid-cols-1 gap-2">
-                {permRow("perm_apagar_item", "Apagar itens dos pedidos sem pedir senha")}
-                {permRow("perm_cancelar_pedido", "Cancelar pedido sem pedir senha")}
-                {permRow("perm_conceder_desconto", "Conceder descontos sem pedir senha")}
-                {permRow("perm_acesso_cardapio", "Acesso ao cardápio sem pedir senha")}
-                {permRow("perm_ver_valores", "Ver valores do caixa sem pedir senha")}
-              </div>
-            </div>
-          )}
-          {isGarcom && (
-            <div className="sm:col-span-2 rounded-xl border border-amber-300/80 bg-amber-50/40 p-3">
-              <h5 className="mb-1 flex items-center gap-2 text-xs font-bold tracking-tight text-amber-900">
-                <Shield className="h-4 w-4" /> Permissão do garçom
-              </h5>
-              <p className="mb-2 text-[11px] leading-relaxed text-amber-800/90">
-                Por padrão o garçom não vê pedidos de entrega nem de retirada (de nenhuma origem) e não pode criá-los.
-                Ligue se <strong>este garçom</strong> deve ver as entregas e retiradas.
-              </p>
-              <div className="grid grid-cols-1 gap-2">
-                {permRow("perm_ver_entregas", "Ver entregas e retiradas")}
-              </div>
-            </div>
-          )}
-        </Block>
-        <Block title="Senha de acesso">
-          <Field label="Senha" required={!data.id} hint={data.id ? "Em branco = manter a senha atual." : "Do tamanho que preferir — 1 caractere já vale."}>
+          <Field label="Senha" required={!data.id} hint={data.id ? "Em branco = manter a atual." : undefined}>
             <Input className={inputCls} type="password" value={data.senha ?? ""} onChange={(e) => upd({ senha: e.target.value })} autoComplete="new-password" />
           </Field>
-          <Field label="Confirmar senha" required={!data.id} hint={data.senha && confirmSenha && data.senha !== confirmSenha ? "As senhas não coincidem." : ""}>
-            <Input className={inputCls} type="password" value={confirmSenha} onChange={(e) => setConfirmSenha(e.target.value)} autoComplete="new-password" />
+          <Field label="Repetir senha" required={!data.id} hint={senhaDiferente ? "As senhas não são iguais." : undefined}>
+            <Input
+              className={`${inputCls} ${senhaDiferente ? "border-danger focus-visible:border-danger" : ""}`}
+              type="password"
+              value={confirmSenha}
+              onChange={(e) => setConfirmSenha(e.target.value)}
+              autoComplete="new-password"
+            />
           </Field>
-        </Block>
-      </>
+        </div>
+
+        {(isGarcom || isCaixa) && (
+          <div>
+            <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-ink-muted">
+              <Shield className="h-3.5 w-3.5" />
+              {isCaixa ? "Pode fazer sem pedir senha de administrador" : "Permissão"}
+            </div>
+            <div className={`grid grid-cols-1 gap-2 ${isCaixa ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+              {isGarcom && perm("perm_ver_entregas", "Ver e criar entregas e retiradas")}
+              {isCaixa && perm("perm_apagar_item", "Apagar itens")}
+              {isCaixa && perm("perm_cancelar_pedido", "Cancelar pedido")}
+              {isCaixa && perm("perm_conceder_desconto", "Dar desconto")}
+              {isCaixa && perm("perm_acesso_cardapio", "Mexer no cardápio")}
+              {isCaixa && perm("perm_ver_valores", "Ver valores")}
+            </div>
+          </div>
+        )}
+      </div>
     );
   }
 

@@ -150,6 +150,22 @@ export function RegistrationsPage() {
   const pageItems = sorted.slice((page - 1) * pageSize, page * pageSize);
 
   const openNew = () => { setEditing(null); setModalOpen(true); };
+
+  // Atalho vindo de outra tela (ex.: "Cadastrar novo garçom" do QR de acesso):
+  // ?aba=usuarios&novo=1 abre a aba e o formulário de cadastro direto. O
+  // index.php repassa esses dois parâmetros para o iframe.
+  const atalhoUrlRef = useRef(false);
+  useEffect(() => {
+    if (atalhoUrlRef.current) return;
+    atalhoUrlRef.current = true;
+    try {
+      const qs = new URLSearchParams(window.location.search);
+      const aba = qs.get("aba") as TabKey | null;
+      if (aba && aba in sortFieldsByTab) changeTab(aba);
+      if (qs.get("novo") === "1") { setEditing(null); setModalOpen(true); }
+    } catch { /* sem atalho */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const openEdit = (rec: AnyRecord) => { setEditing(rec); setModalOpen(true); };
 
   const save = async (rec: AnyRecord) => {
