@@ -80,8 +80,19 @@ export function RecordModal({
 
   const [mesaMode, setMesaMode] = useState<"unico" | "lote">("unico");
   const [loteTipo, setLoteTipo] = useState<"Mesa" | "Comanda">("Mesa");
-  const [loteDe, setLoteDe] = useState(1);
-  const [loteAte, setLoteAte] = useState(10);
+  // Texto (nao numero): o campo pode ficar vazio enquanto a pessoa digita; antes virava 0 e nao dava para apagar.
+  const [loteDeTxt, setLoteDeTxt] = useState("1");
+  const [loteAteTxt, setLoteAteTxt] = useState("10");
+  const loteDe = parseInt(loteDeTxt, 10) || 0;
+  const loteAte = parseInt(loteAteTxt, 10) || 0;
+  const soDigitos = (v: string) => v.replace(/\D/g, "").slice(0, 4);
+  // Por que a previa esta vazia, em palavras (antes era so "Informe um intervalo valido").
+  const motivoLote =
+    loteDeTxt === "" || loteAteTxt === "" ? "Preencha o primeiro e o último número."
+    : loteDe < 1 ? "O primeiro número precisa ser 1 ou maior."
+    : loteAte < loteDe ? "O último número precisa ser igual ou maior que o primeiro."
+    : loteAte - loteDe >= 500 ? "No máximo 500 de uma vez."
+    : "";
   const [loteLocal, setLoteLocal] = useState("Salão principal");
   /** Pessoa sendo salva sem CPF/CNPJ ou telefone: campos que faltam (abre o aviso). */
   const [faltando, setFaltando] = useState<string[] | null>(null);
@@ -99,8 +110,8 @@ export function RecordModal({
       if (cepTimerRef.current) window.clearTimeout(cepTimerRef.current);
       setMesaMode("unico");
       setLoteTipo("Mesa");
-      setLoteDe(1);
-      setLoteAte(10);
+      setLoteDeTxt("1");
+      setLoteAteTxt("10");
       setLoteLocal("Salão principal");
     }
   }, [open, initial, tab, empresaDefaults]);
@@ -215,7 +226,7 @@ export function RecordModal({
 
   const gerados = useMemo(() => {
     const arr: { nome: string; existe: boolean }[] = [];
-    if (loteDe > 0 && loteAte >= loteDe) {
+    if (loteDe > 0 && loteAte >= loteDe && loteAte - loteDe < 500) {
       for (let i = loteDe; i <= loteAte; i++) {
         const nome = `${loteTipo} ${String(i).padStart(2, "0")}`;
         const existe = (mesas ?? []).some(
@@ -336,11 +347,11 @@ export function RecordModal({
                       </SelectContent>
                     </Select>
                   </Field>
-                  <Field label="De">
-                    <Input className="h-11 rounded-xl border-border/80 bg-surface text-ink focus-visible:border-brand focus-visible:ring-brand/20" type="number" value={loteDe} onChange={(e) => setLoteDe(Number(e.target.value))} />
+                  <Field label="Primeiro número" hint="Onde a sequência começa. Ex.: 1">
+                    <Input className="h-11 rounded-xl border-border/80 bg-surface text-ink focus-visible:border-brand focus-visible:ring-brand/20" type="text" inputMode="numeric" pattern="[0-9]*" placeholder="1" value={loteDeTxt} onChange={(e) => setLoteDeTxt(soDigitos(e.target.value))} />
                   </Field>
-                  <Field label="Até">
-                    <Input className="h-11 rounded-xl border-border/80 bg-surface text-ink focus-visible:border-brand focus-visible:ring-brand/20" type="number" value={loteAte} onChange={(e) => setLoteAte(Number(e.target.value))} />
+                  <Field label="Último número" hint="Onde a sequência termina. Ex.: 10">
+                    <Input className="h-11 rounded-xl border-border/80 bg-surface text-ink focus-visible:border-brand focus-visible:ring-brand/20" type="text" inputMode="numeric" pattern="[0-9]*" placeholder="10" value={loteAteTxt} onChange={(e) => setLoteAteTxt(soDigitos(e.target.value))} />
                   </Field>
                   <Field label="Local">
                     <Input className="h-11 rounded-xl border-border/80 bg-surface text-ink focus-visible:border-brand focus-visible:ring-brand/20" value={loteLocal} onChange={(e) => setLoteLocal(e.target.value)} placeholder="Salão principal" />
@@ -352,7 +363,7 @@ export function RecordModal({
                     <span className="text-xs font-semibold text-brand">{loteACriar.length} novo(s)</span>
                   </div>
                   <div className="flex max-h-52 flex-wrap gap-2 overflow-y-auto">
-                    {gerados.length === 0 && <p className="text-xs text-ink-muted">Informe um intervalo válido.</p>}
+                    {gerados.length === 0 && <p className="text-xs text-ink-muted">{motivoLote || "Informe um intervalo válido."}</p>}
                     {gerados.map((g) => (
                       <span
                         key={g.nome}
